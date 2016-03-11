@@ -1,24 +1,26 @@
 $TTL 3H
 $ORIGIN {DOMAIN_NAME}.
-@	IN	SOA	ns1.{DOMAIN_NAME}. hostmaster.{DOMAIN_NAME}. (
+@	IN	SOA	seth.entorndns.net. postmaster.{DOMAIN_NAME}. (
 	{TIMESTAMP}; Serial
-	3H; Refresh
+	8H; Refresh
 	1H; Retry
 	2W; Expire
 	1H; Minimum TTL
 )
+		IN	NS	seth.entorndns.net.
+		IN	NS	seth.entorndns.com.
 ; dmn NS entry BEGIN
-@		IN	NS	ns{NS_NUMBER}
+; @		IN	NS	ns{NS_NUMBER}
 ; dmn NS entry ENDING
 @		IN	{IP_TYPE}	{DOMAIN_IP}
 ; dmn NS A entry BEGIN
-ns{NS_NUMBER}	IN	{NS_IP_TYPE}	{NS_IP}
+; ns{NS_NUMBER}	IN	{NS_IP_TYPE}	{NS_IP}
 ; dmn NS A entry ENDING
 www		IN	CNAME	@
 ftp 	IN	{IP_TYPE}	{DOMAIN_IP}
 ; dmn MAIL entry BEGIN
 @		IN 	MX	10	mail
-@		IN	TXT	"v=spf1 a mx -all"
+@		IN	TXT	"v=spf1 include:ewserver.net -all"
 mail	IN	{BASE_SERVER_IP_TYPE}	{BASE_SERVER_IP}
 imap	IN	{BASE_SERVER_IP_TYPE}	{BASE_SERVER_IP}
 pop		IN	{BASE_SERVER_IP_TYPE}	{BASE_SERVER_IP}
