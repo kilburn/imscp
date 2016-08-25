@@ -1,14 +1,14 @@
 $TTL 3H
 $ORIGIN {DOMAIN_NAME}.
-@	IN	SOA	seth.entorndns.net. postmaster.{DOMAIN_NAME}. (
+@	IN	SOA	ns1.entorndns.net. postmaster.{DOMAIN_NAME}. (
 	{TIMESTAMP}; Serial
 	8H; Refresh
 	1H; Retry
 	2W; Expire
 	1H; Minimum TTL
 )
-		IN	NS	seth.entorndns.net.
-		IN	NS	seth.entorndns.com.
+		IN	NS	ns1.entorndns.net.
+		IN	NS	ns2.entorndns.net.
 ; dmn NS entry BEGIN
 ; @		IN	NS	ns{NS_NUMBER}
 ; dmn NS entry ENDING
