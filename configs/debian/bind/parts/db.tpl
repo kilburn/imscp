@@ -9,6 +9,8 @@ $ORIGIN {DOMAIN_NAME}.
 )
 		IN	NS	ns1.entorndns.net.
 		IN	NS	ns2.entorndns.net.
+		IN	NS	ns1.entorndns.com.
+		IN	NS	ns2.entorndns.com.
 ; dmn NS entry BEGIN
 ; @		IN	NS	ns{NS_NUMBER}
 ; dmn NS entry ENDING
