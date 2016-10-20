@@ -2,7 +2,7 @@
 $ORIGIN {SUBDOMAIN_NAME}.
 ; sub MAIL entry BEGIN
 @	IN	MX	10 mail
-@	IN	TXT	"v=spf1 include:{DOMAIN_NAME} -all"
+@	IN	TXT	"v=spf1 include:ewserver.net -all"
 mail	IN	{BASE_SERVER_IP_TYPE}	{BASE_SERVER_IP}
 imap	IN	{BASE_SERVER_IP_TYPE}	{BASE_SERVER_IP}
 pop		IN	{BASE_SERVER_IP_TYPE}	{BASE_SERVER_IP}
