@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2016 by i-MSCP Team
+ * Copyright (C) 2010-2017 by i-MSCP Team
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -197,7 +197,7 @@ require 'imscp-lib.php';
 
 iMSCP_Events_Aggregator::getInstance()->dispatch(iMSCP_Events::onResellerScriptStart);
 check_login('reseller');
-resellerHasFeature('domain_aliases') or showBadRequestErrorPage();
+resellerHasFeature('domain_aliases') && resellerHasCustomers() or showBadRequestErrorPage();
 
 if (is_xhr()) {
     header('Cache-Control: no-cache, must-revalidate');

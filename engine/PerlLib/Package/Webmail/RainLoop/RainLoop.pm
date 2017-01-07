@@ -5,7 +5,7 @@ Package::Webmail::RainLoop::RainLoop - i-MSCP RainLoop package
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -30,7 +30,6 @@ use iMSCP::Config;
 use iMSCP::Debug;
 use iMSCP::Database;
 use iMSCP::Dir;
-use Scalar::Defer;
 use parent 'Common::SingletonClass';
 
 my $dbInitialized = undef;
@@ -41,7 +40,7 @@ my $dbInitialized = undef;
 
  RainLoop Webmail is a simple, modern and fast Web-based email client.
 
- Project homepage: http://http://rainloop.net/
+ Project homepage: http://http://rainloop.net/
 
 =head1 PUBLIC METHODS
 
@@ -219,11 +218,7 @@ sub _init
     $self->{'cfgDir'} = "$main::imscpConfig{'CONF_DIR'}/rainloop";
 
     if (-f "$self->{'cfgDir'}/rainloop.data") {
-        $self->{'config'} = lazy
-            {
-                tie my %c, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/rainloop.data", readonly => 1;
-                \%c;
-            };
+        tie %{$self->{'config'}}, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/rainloop.data", readonly => 1;
     } else {
         $self->{'config'} = { };
     }

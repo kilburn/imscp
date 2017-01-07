@@ -5,7 +5,7 @@ Package::FrontEnd - i-MSCP FrontEnd package
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -33,7 +33,6 @@ use iMSCP::Execute;
 use iMSCP::EventManager;
 use iMSCP::TemplateParser;
 use iMSCP::Service;
-use Scalar::Defer;
 use Servers::httpd;
 use parent 'Common::SingletonClass';
 
@@ -451,11 +450,7 @@ sub _init
     $self->{'reload'} = 0;
     $self->{'restart'} = 0;
     $self->{'cfgDir'} = "$main::imscpConfig{'CONF_DIR'}/frontend";
-    $self->{'config'} = lazy
-        {
-            tie my %c, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/frontend.data", readonly => 1;
-            \%c;
-        };
+    tie %{$self->{'config'}}, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/frontend.data", readonly => 1;
     $self->{'phpConfig'} = Servers::httpd->factory()->{'phpConfig'};
     $self->{'eventManager'} = iMSCP::EventManager->getInstance();
     $self;

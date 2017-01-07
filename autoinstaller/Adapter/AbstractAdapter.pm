@@ -5,7 +5,7 @@ autoinstaller::Adapter::AbstractAdapter - Abstract class for autoinstaller distr
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright 2010-2016 by internet Multi Server Control Panel
+# Copyright 2010-2017 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -49,10 +49,11 @@ sub installPreRequiredPackages
     0;
 }
 
-=item preBuild()
+=item preBuild(\@steps)
 
  Process preBuild tasks
 
+ Param array \@steps List of build steps
  Return int 0 on success, other on failure
 
 =cut
@@ -97,6 +98,33 @@ sub uninstallPackages
 =cut
 
 sub postBuild
+{
+    0;
+}
+
+=item preInstall(\@steps)
+
+ Process preInstall tasks
+
+ Param array \@steps List of install steps
+ Return int 0 on success, other on failure
+
+=cut
+
+sub preInstall
+{
+    0;
+}
+
+=item postInstall()
+
+ Process postInstall tasks
+
+ Return int 0 on success, other on failure
+
+=cut
+
+sub postInstall()
 {
     0;
 }

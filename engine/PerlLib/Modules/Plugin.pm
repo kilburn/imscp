@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2013-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2013-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -393,7 +393,7 @@ sub _call
 
         # Return value from the run() action is ignored by default because it's the responsability of the plugins to set
         # error status for their items. In case a plugin doesn't manage any item, it can force return value by defining
-        # the FORCE_RETVAL attribute and set it value to 'yes'
+        # the FORCE_RETVAL attribute and set it value to 'yes'
         if ($method ne 'run' || (defined $plugin->{'FORCE_RETVAL'} && $plugin->{'FORCE_RETVAL'} eq 'yes')) {
             return $rs;
         }

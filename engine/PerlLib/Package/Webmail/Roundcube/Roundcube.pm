@@ -5,7 +5,7 @@ Package::Webmail::Roundcube::Roundcube - i-MSCP Roundcube package
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -42,7 +42,7 @@ filters.
 
  The user interface is fully skinnable using XHTML and CSS 2.
 
- Project homepage: http://www.roundcube.net/
+ Project homepage: http://www.roundcube.net/
 
 =head1 PUBLIC METHODS
 
@@ -180,11 +180,7 @@ sub _init
     $self->{'wrkDir'} = "$self->{'cfgDir'}/working";
 
     if (-f "$self->{'cfgDir'}/roundcube.data") {
-        $self->{'config'} = lazy
-            {
-                tie my %c, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/roundcube.data", readonly => 1;
-                \%c;
-            };
+        tie %{$self->{'config'}}, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/roundcube.data", readonly => 1;
     } else {
         $self->{'config'} = { };
     }

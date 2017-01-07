@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -44,7 +44,7 @@ my $showUsage;
 
 =over 4
 
-=item parse($usage)
+=item parse($usage, @options)
 
  Parses command line options in @ARGV with GetOptions from Getopt::Long
 
@@ -54,6 +54,8 @@ my $showUsage;
  If any additonal parameters are passed to this function, they are also passed to GetOptions. This can be used to handle
  additional options.
 
+ Param string $usage Usage text
+ Param list @options OPTIONAL Additional options
  Return undef
 
 =cut
@@ -67,15 +69,15 @@ sub parse
         print STDERR wrap( '', '', <<"EOF" );
 
 $usage
- -a     --skip-package-update   Skip i-MSCP packages update.
- -c     --clean-package-cache   Cleanup i-MSCP package cache.
+ -a,    --skip-package-update   Skip i-MSCP packages update.
+ -c,    --clean-package-cache   Cleanup i-MSCP package cache.
  -d,    --debug                 Force debug mode.
  -h,-?  --help                  Show this help.
  -l,    --listener <file>       Path to listener file.
  -n,    --noprompt              Switch to non-interactive mode.
  -p,    --preseed <file>        Path to preseed file.
  -r,    --reconfigure [item]    Type `help` for list of allowed items.
- -v     --verbose               Enable verbose mode.
+ -v,    --verbose               Enable verbose mode.
  -x,    --fix-permissions       Fix permissions recursively.
 
 $optionHelp
@@ -112,12 +114,14 @@ EOF
     undef;
 }
 
-=item parseNoDefault($usage)
+=item parseNoDefault($usage, @options)
 
  Parses command line options in @ARGV with GetOptions from Getopt::Long. Default options are excluded
 
  The first parameter should be basic usage text for the program. Any following parameters are passed to to GetOptions.
 
+ Param string $usage Usage text
+ Param list @options Options
  Return undef
 
 =cut
@@ -172,9 +176,10 @@ sub showUsage
 }
 
 our @reconfigurationItems = sort(
-    'all', 'servers', 'httpd', 'mta', 'mailfilters', 'po', 'ftpd', 'named', 'sql', 'hostnames', 'system_hostname',
-    'panel_hostname', 'panel_ports', 'primary_ip', 'admin', 'php', 'timezone', 'panel', 'panel_ssl', 'services_ssl',
-    'ssl', 'backup', 'webstats', 'sqlmanager', 'webmails', 'filemanager', 'antirootkits'
+    'all', 'servers', 'httpd', 'mta', 'po', 'ftpd', 'named', 'sql', 'hostnames', 'system_hostname',
+    'panel_hostname', 'panel_ports', 'primary_ip', 'admin', 'admin_credentials', 'admin_email', 'php', 'timezone',
+    'panel', 'panel_ssl', 'services_ssl', 'ssl', 'backup', 'webstats', 'sqlmanager', 'webmails', 'filemanager',
+    'antirootkits'
 );
 
 =item reconfigure([ $item = 'none' ])

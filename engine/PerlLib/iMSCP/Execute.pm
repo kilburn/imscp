@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -31,6 +31,7 @@ use File::Basename qw/ dirname /;
 use iMSCP::Debug qw/ debug error /;
 use IO::Select;
 use IPC::Open3;
+use open qw / :std :utf8 /;
 use Symbol 'gensym';
 
 my $vendorLibDir;
@@ -125,11 +126,9 @@ sub executeNoWait($;$$)
     my $pid = open3( my $stdin, my $stdout, my $stderr = gensym, $multitArgs ? @{$command} : $command );
     close $stdin;
 
-    open my $printSTDOUT, '>&STDOUT' or die(sprintf('Could not dup STDOUT: %s', $!));
-    $printSTDOUT->autoflush(1);
-
-    open my $printSTERR, '>&STDERR' or die(sprintf('Could not dup STDERR: %s', $!));
-    $printSTERR->autoflush(1);
+    # Enforce :utf8 layer on open3 filehandles
+    binmode($stdout, ':utf8');
+    binmode($stderr, ':utf8');
 
     my %buffers = ( $stdout => '', $stderr => '' );
     my $sel = IO::Select->new( $stdout, $stderr );
@@ -148,14 +147,11 @@ sub executeNoWait($;$$)
 
             if ($buffers{$fh} =~ s/^(.*\n)$//s) {
                 $fh == $stderr
-                    ? (defined $stderrSubref ? $stderrSubref->( $1 ) : print {$printSTDOUT} $1)
-                    : (defined $stdoutSubref ? $stdoutSubref->( $1 ) : print {$printSTERR} $1);
+                    ? (defined $stderrSubref ? $stderrSubref->( $1 ) : print STDERR $1)
+                    : (defined $stdoutSubref ? $stdoutSubref->( $1 ) : print STDOUT $1);
             }
         }
     }
-
-    close($printSTDOUT);
-    close($printSTERR);
 
     waitpid( $pid, 0 );
     getExitCode();

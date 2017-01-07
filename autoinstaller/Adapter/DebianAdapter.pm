@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use autouse 'iMSCP::Stepper' => qw/ startDetail endDetail step /;
 use Cwd;
+use Encode qw/ encode_utf8 /;
 use Fcntl qw/ :flock /;
 use FindBin;
 use iMSCP::Debug;
@@ -83,35 +84,28 @@ sub installPreRequiredPackages
     $rs ||= $self->{'eventManager'}->trigger( 'afterInstallPreRequiredPackages' );
 }
 
-=item preBuild()
+=item preBuild(\@steps)
 
  Process preBuild tasks
 
+ Param array \@steps List of build steps
  Return int 0 on success, other on failure
 
 =cut
 
 sub preBuild
 {
-    my $self = shift;
+    my ($self, $steps) = @_;
 
     return 0 if $main::skippackages;
 
-    my @steps = (
+    unshift @{$steps}, (
         [ sub { $self->_buildPackageList() }, 'Building list of packages to install/uninstall' ],
         [ sub { $self->_prefillDebconfDatabase() }, 'Pre-fill Debconf database' ],
         [ sub { $self->_processAptRepositories() }, 'Processing APT repositories if any' ],
         [ sub { $self->_processAptPreferences() }, 'Processing APT preferences if any' ],
         [ sub { $self->_updatePackagesIndex() }, 'Updating packages index' ]
     );
-
-    my $step = 1;
-    my $nbSteps = scalar @steps;
-    for (@steps) {
-        my $rs = step( $_->[0], $_->[1], $nbSteps, $step );
-        return $rs if $rs;
-        $step++;
-    }
 
     0
 }
@@ -276,19 +270,6 @@ sub uninstallPackages
     $self->{'eventManager'}->trigger( 'afterUninstallPackages' );
 }
 
-=item postBuild()
-
- Process postBuild tasks
-
- Return int 0 on success, other on failure
-
-=cut
-
-sub postBuild
-{
-    0
-}
-
 =back
 
 =head1 PRIVATE METHODS/FUNCTIONS
@@ -410,6 +391,9 @@ sub _buildPackageList
         return 1;
     }
 
+    my $dialog = iMSCP::Dialog->getInstance();
+    $dialog->set( 'no-cancel', '' );
+
     while(my ($section, $data) = each( %{$pkgData} )) {
         # Simple list of packages to install
         if ($data->{'package'}) {
@@ -446,13 +430,11 @@ sub _buildPackageList
 
         # Ask user for alternative list of packages to install if any
         if (@alts > 1 && ($forceDialog || grep($_ eq $main::reconfigure, ( $section, 'servers', 'all' )))) {
-            iMSCP::Dialog->getInstance()->set( 'no-cancel', '' );
-            (my $ret, $sAlt) = iMSCP::Dialog->getInstance()->radiolist( <<"EOF", [ sort @alts ], $sAlt );
+            (my $ret, $sAlt) = $dialog->radiolist( <<"EOF", [ sort @alts ], $sAlt );
 
 Please, choose the server you want use for the $section service:
 EOF
             return $ret if $ret; # Handle ESC case
-            iMSCP::Dialog->getInstance()->set( 'no-cancel' );
         }
 
         while(my ($alt, $altData) = each( %{$data} )) {
@@ -532,6 +514,7 @@ EOF
         $main::imscpConfig{uc( $section ).'_SERVER'} = $sAlt;
     }
 
+    $dialog->set( 'no-cancel', '' );
     0;
 }
 
@@ -938,7 +921,7 @@ sub _rebuildAndInstallPackage
                     $cmd,
                     (iMSCP::Getopt->noprompt && iMSCP::Getopt->verbose ? undef : sub {
                             my $lines = shift;
-                            open( my $fh, '<', \$lines ) or die ( $! );
+                            open( my $fh, '<', \encode_utf8( $lines ) ) or die ( $! );
                             step( undef, $msgHeader.ucfirst( s/^I:\s+(.*)/$1/r ).$msgFooter, 5, 1 ) while <$fh>;
                             close( $fh );
                         }

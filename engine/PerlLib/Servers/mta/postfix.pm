@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -26,6 +26,7 @@ package Servers::mta::postfix;
 use strict;
 use warnings;
 use Class::Autouse qw/ :nostat File::Temp Servers::mta::postfix::installer Servers::mta::postfix::uninstaller /;
+use Encode qw/ encode_utf8 /;
 use File::Basename;
 use iMSCP::Config;
 use iMSCP::Debug;
@@ -35,7 +36,6 @@ use iMSCP::Execute;
 use iMSCP::File;
 use iMSCP::Getopt;
 use iMSCP::Service;
-use Scalar::Defer;
 use Tie::File;
 use parent 'Common::SingletonClass';
 
@@ -786,7 +786,7 @@ sub postconf
             [ 'postconf', '-c', $self->{'config'}->{'POSTFIX_CONF_DIR'}, keys %params ],
             sub {
                 my $buffer = shift;
-                open my $stdout, '<', \$buffer or die( sprintf( 'Could not open in-memory file: %s', $! ) );
+                open my $stdout, '<', \encode_utf8( $buffer ) or die( sprintf( 'Could not open in-memory file: %s', $! ) );
                 while(<$stdout>) {
                     /^([^=]+)\s+=\s+(.*)/;
                     next unless defined $1 && defined $2;
@@ -883,11 +883,7 @@ sub _init
     $self->{'eventManager'} = iMSCP::EventManager->getInstance();
     $self->{'cfgDir'} = "$main::imscpConfig{'CONF_DIR'}/postfix";
     $self->{'bkpDir'} = "$self->{'cfgDir'}/backup";
-    $self->{'config'} = lazy
-        {
-            tie my %c, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/postfix.data", readonly => 1;
-            \%c;
-        };
+    tie %{$self->{'config'}}, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/postfix.data", readonly => 1;
     $self->{'_maps'} = { };
     $self;
 }

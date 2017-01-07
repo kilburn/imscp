@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -38,14 +38,13 @@ use iMSCP::Execute;
 use iMSCP::Ext2Attributes qw/ setImmutable clearImmutable isImmutable /;
 use iMSCP::File;
 use iMSCP::Getopt;
-use iMSCP::Mount qw / mount umount isMountpoint addMountEntry removeMountEntry /;
+use iMSCP::Mount qw/ mount umount isMountpoint addMountEntry removeMountEntry /;
 use iMSCP::Net;
 use iMSCP::ProgramFinder;
 use iMSCP::Rights;
 use iMSCP::TemplateParser;
 use iMSCP::Service;
-use List::MoreUtils qw(uniq);
-use Scalar::Defer;
+use List::MoreUtils qw/ uniq /;
 use version;
 use parent 'Common::SingletonClass';
 
@@ -347,6 +346,7 @@ sub disableDmn
 
     # Ensure that custom httpd conffile exists (cover case where file has been removed for any reasons)
     unless (-f "$self->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/$data->{'DOMAIN_NAME'}.conf") {
+        $data->{'SKIP_TEMPLATE_CLEANER'} = 1;
         $rs = $self->buildConfFile(
             "$self->{'apacheTplDir'}/custom.conf.tpl",
             $data,
@@ -871,7 +871,7 @@ sub buildConfFile
     return $rs if $rs;
 
     unless (defined $cfgTpl) {
-        $file = "$self->{'apacheCfgDir'}/$file" unless -d $path && $path ne './';
+        $file = File::Spec->canonpath("$self->{'apacheCfgDir'}/$filename") if $path eq './';
         $cfgTpl = iMSCP::File->new( filename => $file )->get();
         unless (defined $cfgTpl) {
             error( sprintf( 'Could not read %s file', $file ) );
@@ -1321,8 +1321,6 @@ sub mountLogsFolder
 
  Umount logs folder which belong to the given domain from customer's logs folder
 
- Note: In case of a partial path, any file systems below this path will be umounted.
-
  Param hash \%data Domain data
  Return int 0 on success, other on failure
 
@@ -1332,13 +1330,20 @@ sub umountLogsFolder
 {
     my ($self, $data) = @_;
 
-    # If domain type is 'dmn' (full account) we operate recursively to handle case of dangling mounts
-    my $fsFile = File::Spec->canonpath(
-        "$data->{'HOME_DIR'}/logs".($data->{'DOMAIN_TYPE'} ne 'dmn' ? "/$data->{'DOMAIN_NAME'}" : '')
-    );
+    my $recursive = 1;
+    my $fsFile = "$data->{'HOME_DIR'}/logs";
+
+    # We operate recursively only if domain type is 'dmn' (full account)
+    if ($data->{'DOMAIN_TYPE'} ne 'dmn') {
+        $recursive = 0;
+        $fsFile .= "/$data->{'DOMAIN_NAME'}";
+    }
+
+    $fsFile = File::Spec->canonpath($fsFile);
+
     my $rs = $self->{'eventManager'}->trigger( 'beforeUnmountLogsFolder', $data, $fsFile );
     $rs ||= removeMountEntry( qr%.*?[ \t]+\Q$fsFile\E(?:/|[ \t]+)[^\n]+% );
-    $rs ||= umount( $fsFile );
+    $rs ||= umount( $fsFile, $recursive );
     $rs ||= $self->{'eventManager'}->trigger( 'afterUmountMountLogsFolder', $data, $fsFile );
 }
 
@@ -1365,19 +1370,9 @@ sub _init
     $self->{'eventManager'} = iMSCP::EventManager->getInstance();
     $self->{'apacheCfgDir'} = "$main::imscpConfig{'CONF_DIR'}/apache";
     $self->{'apacheTplDir'} = "$self->{'apacheCfgDir'}/parts";
-    $self->{'config'} = lazy
-        {
-            tie my %c, 'iMSCP::Config',
-                fileName => "$self->{'apacheCfgDir'}/apache.data",
-                readonly => (defined $main::execmode && $main::execmode eq 'setup') ? 0 : 1;
-            \%c;
-        };
+    tie %{$self->{'config'}}, 'iMSCP::Config', fileName => "$self->{'apacheCfgDir'}/apache.data", readonly => 1;
     $self->{'phpCfgDir'} = "$main::imscpConfig{'CONF_DIR'}/php";
-    $self->{'phpConfig'} = lazy
-        {
-            tie my %c, 'iMSCP::Config', fileName => "$self->{'phpCfgDir'}/php.data", readonly => 1;
-            \%c;
-        };
+    tie %{$self->{'phpConfig'}}, 'iMSCP::Config', fileName => "$self->{'phpCfgDir'}/php.data", readonly => 1;
     $self->{'eventManager'}->register( 'afterHttpdBuildConfFile', sub { $self->_cleanTemplate( @_ )} );
     $self;
 }
@@ -1476,6 +1471,7 @@ sub _addCfg
     }
 
     unless (-f "$self->{'config'}->{'HTTPD_CUSTOM_SITES_DIR'}/$data->{'DOMAIN_NAME'}.conf") {
+        $data->{'SKIP_TEMPLATE_CLEANER'} = 1;
         $rs = $self->buildConfFile(
             "$self->{'apacheTplDir'}/custom.conf.tpl",
             $data,
@@ -1564,6 +1560,7 @@ sub _addFiles
                 if (-d "$tmpDir/htdocs") {
                     # Test needed in case admin removed the index.html file from the skeleton
                     if (-f "$tmpDir/htdocs/index.html") {
+                        $data->{SKIP_TEMPLATE_CLEANER} = 1;
                         my $fileSource = "$tmpDir/htdocs/index.html";
                         $rs = $self->buildConfFile( $fileSource, $data, { destination => $fileSource } );
                         return $rs if $rs;
@@ -1750,6 +1747,11 @@ sub _cleanTemplate
 {
     my (undef, $tpl, $name, $data) = @_;
 
+    if ($data->{'SKIP_TEMPLATE_CLEANER'}) {
+        delete $data->{'SKIP_TEMPLATE_CLEANER'};
+        return 0;
+    }
+
     if ($name =~ /^domain(?:_ssl)?\.tpl$/) {
         ${$tpl} = replaceBloc( "# SECTION suexec BEGIN.\n", "# SECTION suexec END.\n", '', ${$tpl} );
 
@@ -1765,7 +1767,6 @@ sub _cleanTemplate
 
         ${$tpl} = replaceBloc( "# SECTION fcgid BEGIN.\n", "# SECTION fcgid END.\n", '', ${$tpl} );
         ${$tpl} = replaceBloc("# SECTION php_fpm BEGIN.\n", "# SECTION php_fpm END.\n", '', ${$tpl});
-        ${$tpl} =~ s/^\s*(?:[#;].*)?\n//gmi;
     } elsif ($name =~ /^domain(?:_disabled|_redirect)?(_ssl)?\.tpl$/) {
         my $isSSLVhost = defined $1;
 
@@ -1774,7 +1775,7 @@ sub _cleanTemplate
                 ${$tpl} = replaceBloc(
                     "# SECTION standard_redirect BEGIN.\n", "# SECTION standard_redirect END.\n", '', ${$tpl}
                 );
-                if ($data->{'FORWARD'} !~ /^https/) {
+                if (index($data->{'FORWARD'}, 'https') != 0) {
                     ${$tpl} = replaceBloc("# SECTION ssl_proxy BEGIN.\n", "# SECTION ssl_proxy END.\n", '', ${$tpl});
                 }
             } else {
@@ -1789,11 +1790,9 @@ sub _cleanTemplate
         if ($isSSLVhost && !$data->{'HSTS_SUPPORT'}) {
             ${$tpl} = replaceBloc( "# SECTION hsts BEGIN.\n", "# SECTION hsts END.\n", '', ${$tpl} );
         }
-
-        ${$tpl} =~ s/^\s*(?:[#;].*)?\n//gmi;
-    } else {
-        ${$tpl} =~ s/^\s*(?:;.*)?\n//gmi;
     }
+
+    ${$tpl} =~ s/^\s*(?:[#;].*)?\n//gmi;
 
     0;
 }

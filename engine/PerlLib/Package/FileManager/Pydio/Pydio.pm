@@ -5,7 +5,7 @@ Package::FileManager::Pydio::Pydio - i-MSCP Pydio package
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -33,9 +33,9 @@ use parent 'Common::SingletonClass';
  i-MSCP Pydio package.
 
  Pydio ( formely AjaXplorer ) is a software that can turn any web server into a powerfull file management system and an
-alternative to mainstream cloud storage providers.
+ alternative to mainstream cloud storage providers.
 
- Project homepage: https://pyd.io/
+ Project homepage: https://pyd.io/
 
 =head1 PUBLIC METHODS
 

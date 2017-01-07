@@ -19,7 +19,7 @@
  * by moleSoftware GmbH. All Rights Reserved.
  * Portions created by the ispCP Team are Copyright (C) 2006-2010 by
  * isp Control Panel. All Rights Reserved.
- * Portions created by the i-MSCP Team are Copyright (C) 2010-2015 by
+ * Portions created by the i-MSCP Team are Copyright (C) 2010-2017 by
  * i-MSCP - internet Multi Server Control Panel. All Rights Reserved.
  */
 
@@ -292,8 +292,8 @@ function systemHasResellers($minNbResellers = 1)
 	static $resellersCount = null;
 
 	if (null === $resellersCount ) {
-		$stmt = exec_query('SELECT COUNT(`admin_id`) AS `count` FROM `admin` WHERE `admin_type` = ?', 'reseller');
-		$resellersCount = $stmt->fields['count'];
+		$stmt = execute_query("SELECT COUNT(admin_id) FROM admin WHERE admin_type = 'reseller'");
+		$resellersCount = $stmt->fetchRow(PDO::FETCH_COLUMN);
 	}
 
 
@@ -311,12 +311,10 @@ function systemHasCustomers($minNbCustomers = 1)
 	static $customersCount = null;
 
 	if (null === $customersCount ) {
-		$stmt = exec_query(
-			'SELECT COUNT(`admin_id`) AS `count` FROM `admin` WHERE `admin_type` = ? AND `admin_status` <> ?',
-			array('user', 'todelete')
+		$stmt = execute_query(
+			"SELECT COUNT(admin_id) FROM admin WHERE admin_type = 'user' AND admin_status <> 'todelete'"
 		);
-
-		$customersCount = $stmt->fields['count'];
+		$customersCount = $stmt->fetchRow(PDO::FETCH_COLUMN);
 	}
 
 	return ($customersCount >= $minNbCustomers);

@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -25,7 +25,6 @@ package Servers::sqld::mysql::uninstaller;
 
 use strict;
 use warnings;
-use iMSCP::Debug;
 use iMSCP::File;
 use Servers::sqld::mysql;
 use parent 'Common::SingletonClass';
@@ -71,7 +70,7 @@ sub _init
 {
     my $self = shift;
 
-    $self->{'sqld'} = Servers::sqld->factory()->getInstance();
+    $self->{'sqld'} = Servers::sqld::mysql->getInstance();
     $self;
 }
 

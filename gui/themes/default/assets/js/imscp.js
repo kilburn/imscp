@@ -1,6 +1,6 @@
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -94,7 +94,7 @@
     var passwordGenerator = function() {
         var $pwdGenerator = $(".pwd_generator");
 
-        if($pwdGenerator.length) {
+        if($pwdGenerator.length) {
             var $pwdElements = $("#password,#cpassword");
 
             $("<span>", {
@@ -293,7 +293,7 @@
 
 
 // Initialize FTP chooser event handler
-(function($) {
+(function($) {
     $(function() {
         if(!$(".ftp_choose_dir").length) return; // Avoid attaching event handler when not necessary
 

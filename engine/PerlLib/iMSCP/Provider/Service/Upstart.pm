@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -25,6 +25,7 @@ package iMSCP::Provider::Service::Upstart;
 
 use strict;
 use warnings;
+use Encode qw/ encode_utf8 /;
 use File::Basename;
 use File::Spec;
 use iMSCP::Execute;
@@ -426,9 +427,9 @@ sub _isEnabledPre090
 
     # Upstart versions < 0.9.0 means no override files. Thus,
     # we check to see if an uncommented `start on' or `manual'
-    # stanza is the last one in the file. The last one in the
+    # stanza is the last one in the file. The last one in the
     # file wins.
-    open my $fh, '<', \$jobFileContent or die ( sprintf( 'Could not open in-memory file: %s', $! ) );
+    open my $fh, '<', \encode_utf8( $jobFileContent ) or die ( sprintf( 'Could not open in-memory file: %s', $! ) );
     my $enabled = 0;
     while(<$fh>) {
         if (/$START_ON/) {
@@ -461,7 +462,7 @@ sub _isEnabledPost090
     # override files. The last one in the file wins.
     my $enabled = 0;
     for (\$jobFileContent, \$jobOverrideFileContent) {
-        open my $fh, '<', $_ or die ( sprintf( 'Could not open in-memory file: %s', $! ) );
+        open my $fh, '<', \encode_utf8( ${$_} ) or die ( sprintf( 'Could not open in-memory file: %s', $! ) );
         while(<$fh>) {
             if (/$START_ON/) {
                 $enabled = 1;

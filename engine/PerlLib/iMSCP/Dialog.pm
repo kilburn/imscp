@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by internet Multi Server Control Panel
+# Copyright (C) 2010-2017 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -194,7 +194,7 @@ sub msgbox
     ($_[0]->_textbox( $_[1], 'msgbox' ))[0];
 }
 
-=item yesno($text [, $defaultno ])
+=item yesno($text [, $defaultno ])
 
  Show boolean dialog box
 

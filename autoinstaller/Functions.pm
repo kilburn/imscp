@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright 2010-2016 by internet Multi Server Control Panel
+# Copyright 2010-2017 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@ use strict;
 use warnings;
 use autouse 'iMSCP::Stepper' => qw/ step /;
 use Cwd;
+use Encode qw/ decode_utf8 /;
 use File::Basename;
 use File::Find;
 use iMSCP::Bootstrapper;
@@ -131,10 +132,6 @@ sub build
     return $rs if $rs;
 
     my $dialog = iMSCP::Dialog->getInstance();
-    $dialog->set( 'ok-label', 'Ok' );
-    $dialog->set( 'yes-label', 'Yes' );
-    $dialog->set( 'no-label', 'No' );
-    $dialog->set( 'cancel-label', 'Back' );
 
     unless (iMSCP::Getopt->noprompt || $main::reconfigure ne 'none') {
         $rs = _showWelcomeMsg( $dialog );
@@ -151,11 +148,6 @@ sub build
 
     $rs = _askInstallerMode( $dialog ) unless iMSCP::Getopt->noprompt || $main::buildonly || $main::reconfigure ne 'none';
 
-    $rs ||= $eventManager->trigger( 'beforePreBuild' );
-    $rs ||= _getDistroAdapter()->preBuild();
-    $rs ||= $eventManager->trigger( 'afterPreBuild' );
-    return $rs if $rs;
-
     my @steps = (
         [ \&_checkRequirements,      'Checking for requirements' ],
         [ \&_buildDistributionFiles, 'Building distribution files' ],
@@ -165,23 +157,22 @@ sub build
     );
 
     unshift @steps, [ \&_installDistroPackages, 'Installing distribution packages' ] unless $main::skippackages;
-    
-    $rs = $eventManager->trigger( 'beforeBuild', \@steps );
+
+    $rs ||= $eventManager->trigger( 'preBuild', \@steps );
+    $rs ||= _getDistroAdapter()->preBuild( \@steps );
     return $rs if $rs;
 
-    my $step = 1;
-    my $nbSteps = scalar @steps;
+    my ($step, $nbSteps) = (1, scalar @steps);
     for (@steps) {
-        $rs = step( $_->[0], $_->[1], $nbSteps, $step );
-        error( 'An error occurred while performing build steps' ) if $rs;
+        $rs = step( @{$_}, $nbSteps, $step );
+        error( 'An error occurred while performing build steps' ) if $rs && $rs != 50;
         return $rs if $rs;
         $step++;
     }
 
     iMSCP::Dialog->getInstance()->endGauge();
 
-    $rs = $eventManager->trigger( 'afterBuild' );
-    $rs ||= $eventManager->trigger( 'beforePostBuild' );
+    $rs = $eventManager->trigger( 'postBuild' );
     $rs ||= _getDistroAdapter()->postBuild();
     return $rs if $rs;
 
@@ -274,13 +265,14 @@ EOF
         [ \&main::setupDeleteBuildDir,    'Deleting build directory' ]
     );
 
-    my $rs = iMSCP::EventManager->getInstance()->trigger( 'beforeInstall', \@steps );
+    my $rs = $eventManager->trigger( 'preInstall', \@steps );
+    $rs ||= _getDistroAdapter()->preInstall( \@steps );
     return $rs if $rs;
 
     my $step = 1;
     my $nbSteps = scalar @steps;
     for (@steps) {
-        $rs = step( $_->[0], $_->[1], $nbSteps, $step );
+        $rs = step( @{$_}, $nbSteps, $step );
         error( 'An error occurred while performing installation steps' ) if $rs;
         return $rs if $rs;
         $step++;
@@ -288,7 +280,8 @@ EOF
 
     iMSCP::Dialog->getInstance()->endGauge();
 
-    $rs = iMSCP::EventManager->getInstance()->trigger( 'afterInstall' );
+    $rs = $eventManager->trigger( 'postInstall' );
+    $rs ||= _getDistroAdapter()->postInstall();
     return $rs if $rs;
 
     require Net::LibIDN;
@@ -297,7 +290,7 @@ EOF
     my $port = $main::imscpConfig{'BASE_SERVER_VHOST_PREFIX'} eq 'http://'
         ? $main::imscpConfig{'BASE_SERVER_VHOST_HTTP_PORT'}
         : $main::imscpConfig{'BASE_SERVER_VHOST_HTTPS_PORT'};
-    my $vhost = idn_to_unicode( $main::imscpConfig{'BASE_SERVER_VHOST'}, 'utf-8' );
+    my $vhost = decode_utf8( idn_to_unicode( $main::imscpConfig{'BASE_SERVER_VHOST'}, 'utf-8' ) );
 
     iMSCP::Dialog->getInstance()->infobox( <<"EOF" );
 
@@ -362,7 +355,7 @@ i-MSCP was designed for professional Hosting Service Providers (HSPs), Internet 
 
 Unless otherwise stated all code is licensed under GPL 2.0 and has the following copyright:
 
-        \\ZbCopyright 2010-2016 by i-MSCP Team - All rights reserved\\ZB
+        \\ZbCopyright 2010-2017 by i-MSCP Team - All rights reserved\\ZB
 
 \\Zb\\Z4Credits\\Zn\\ZB
 

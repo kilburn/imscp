@@ -21,7 +21,7 @@
  * Portions created by the ispCP Team are Copyright (C) 2006-2010 by
  * isp Control Panel. All Rights Reserved.
  *
- * Portions created by the i-MSCP Team are Copyright (C) 2010-2016 by
+ * Portions created by the i-MSCP Team are Copyright (C) 2010-2017 by
  * i-MSCP - internet Multi Server Control Panel. All Rights Reserved.
  */
 
@@ -54,7 +54,7 @@ $tpl->assign(array(
     'CONTEXT_CLASS' => '',
     'productLongName' => tr('internet Multi Server Control Panel'),
     'productLink' => 'http://www.i-mscp.net',
-    'productCopyright' => tr('© 2010-2016 i-MSCP Team<br>All Rights Reserved'),
+    'productCopyright' => tr('© 2010-2017 i-MSCP Team<br>All Rights Reserved'),
     'TR_CAPCODE' => tr('Security code'),
     'GET_NEW_IMAGE' => tr('Get a new security code'),
     'CAPTCHA_WIDTH' => $cfg['LOSTPASSWORD_CAPTCHA_WIDTH'],

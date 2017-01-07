@@ -5,7 +5,7 @@ Package::FileManager::MonstaFTP::MonstaFTP - i-MSCP package
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -34,7 +34,7 @@ use parent 'Common::SingletonClass';
 
  MonstaFTP is a web-based FTP client written in PHP.
 
- Project homepage: http://www.monstaftp.com//
+ Project homepage: http://www.monstaftp.com//
 
 =head1 PUBLIC METHODS
 

@@ -1,7 +1,7 @@
 <?php
 /**
  * i-MSCP - internet Multi Server Control Panel
- * Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+ * Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -75,6 +75,7 @@ class VirtualFileSystem
      */
     public function __construct($user, $rootDir = '/')
     {
+        set_time_limit(0);
         ignore_user_abort(true);
         $this->user = (string)$user;
         $this->rootDir = (string)$rootDir;
@@ -178,7 +179,6 @@ class VirtualFileSystem
         // No security implications, the FTP server handles this for us
         $list = @ftp_rawlist($this->stream, "-a $dirname", false);
         if (!$list) {
-            $this->writeLog('Could not list directory.');
             return false;
         }
 

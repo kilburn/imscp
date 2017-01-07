@@ -5,7 +5,7 @@ Package::PhpMyAdmin - i-MSCP PhpMyAdmin package
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -27,7 +27,6 @@ use strict;
 use warnings;
 use Class::Autouse qw/ :nostat Package::PhpMyAdmin::Installer /;
 use iMSCP::Config;
-use Scalar::Defer;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -58,7 +57,7 @@ use parent 'Common::SingletonClass';
  * manage InnoDB tables and foreign keys;
  and is fully internationalized and localized in dozens of languages.
 
- Project homepage: : http://www.phpmyadmin.net/
+ Project homepage: http://www.phpmyadmin.net/
 
 =head1 PUBLIC METHODS
 
@@ -127,11 +126,7 @@ sub _init
     $self->{'cfgDir'} = "$main::imscpConfig{'CONF_DIR'}/pma";
     $self->{'bkpDir'} = "$self->{'cfgDir'}/backup";
     $self->{'wrkDir'} = "$self->{'cfgDir'}/working";
-    $self->{'config'} = lazy
-        {
-            tie my %c, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/phpmyadmin.data", readonly => 1;
-            \%c;
-        };
+    tie %{$self->{'config'}}, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/phpmyadmin.data", readonly => 1;
     iMSCP::EventManager->getInstance()->register(
         'afterFrontendSetGuiPermissions', sub { $self->setPermissionsListener(); }
     );

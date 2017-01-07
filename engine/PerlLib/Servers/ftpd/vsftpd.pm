@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2015-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2015-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -32,7 +32,6 @@ use iMSCP::File;
 use iMSCP::Service;
 use iMSCP::TemplateParser;
 use File::Basename;
-use Scalar::Defer;
 use Class::Autouse qw/ :nostat Servers::ftpd::vsftpd::installer Servers::ftpd::vsftpd::uninstaller /;
 use parent 'Common::SingletonClass';
 
@@ -359,8 +358,11 @@ sub getTraffic
 
         # Create snapshot of traffic data source file
         my $tmpFile = File::Temp->new( UNLINK => 1 );
-        iMSCP::File->new( filename =>
-            $trafficDataSrc )->copyFile( $tmpFile ) == 0 or die( iMSCP::Debug::getLastError() );
+        iMSCP::File->new(
+            filename => $trafficDataSrc
+        )->copyFile(
+            $tmpFile
+        ) == 0 or die( iMSCP::Debug::getLastError() );
 
         # Reset traffic data source file
         truncate( $trafficDataSrc, 0 ) or die( sprintf( 'Could not truncate %s file: %s', $trafficDataSrc, $! ) );
@@ -411,10 +413,7 @@ sub _init
     $self->{'reload'} = 0;
     $self->{'cfgDir'} = "$main::imscpConfig{'CONF_DIR'}/vsftpd";
     $self->{'bkpDir'} = "$self->{'cfgDir'}/backup";
-    $self->{'config'} = lazy {
-            tie my %c, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/vsftpd.data", readonly => 1;
-            \%c
-        };
+    tie %{$self->{'config'}}, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/vsftpd.data", readonly => 1;
     $self;
 }
 

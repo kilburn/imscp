@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by internet Multi Server Control Panel
+# Copyright (C) 2010-2017 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -26,6 +26,7 @@ package Servers::named::bind;
 use strict;
 use warnings;
 use Class::Autouse qw/ :nostat Servers::named::bind::installer Servers::named::bind::uninstaller /;
+use Encode qw/ encode_utf8 /;
 use File::Basename;
 use iMSCP::Debug;
 use iMSCP::Config;
@@ -36,7 +37,6 @@ use iMSCP::ProgramFinder;
 use iMSCP::TemplateParser;
 use iMSCP::Net;
 use iMSCP::Service;
-use Scalar::Defer;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -657,8 +657,8 @@ sub addCustomDNS
     }
 
     my $fh;
-    unless (open( $fh, '<', \$wrkDbFileContent )) {
-        error( sprintf( 'Could not open in memory file: %s', $! ) );
+    unless (open( $fh, '<', \encode_utf8( $wrkDbFileContent ) )) {
+        error( sprintf( 'Could not open in-memory file: %s', $! ) );
         return 1;
     }
 
@@ -787,11 +787,7 @@ sub _init
     $self->{'bkpDir'} = "$self->{'cfgDir'}/backup";
     $self->{'wrkDir'} = "$self->{'cfgDir'}/working";
     $self->{'tplDir'} = "$self->{'cfgDir'}/parts";
-    $self->{'config'} = lazy
-        {
-            tie my %c, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/bind.data", readonly => 1;
-            \%c;
-        };
+    tie %{$self->{'config'}}, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/bind.data", readonly => 1;
     $self;
 }
 

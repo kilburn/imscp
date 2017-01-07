@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -25,15 +25,14 @@ package Servers::sqld::mysql;
 
 use strict;
 use warnings;
+use Class::Autouse qw/ :nostat Servers::sqld::mysql::installer Servers::sqld::mysql::uninstaller /;
 use iMSCP::Config;
 use iMSCP::Database;
 use iMSCP::Debug;
 use iMSCP::EventManager;
 use iMSCP::Execute;
 use iMSCP::Service;
-use Scalar::Defer;
 use version;
-use Class::Autouse qw/ :nostat Servers::sqld::mysql::installer Servers::sqld::mysql::uninstaller /;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -200,7 +199,7 @@ sub dropUser
     defined $host or die( '$host parameter not defined' );
 
     return 0 if $user eq 'root'; # Prevent SQL root user deletion
-    
+
     my $db = iMSCP::Database->factory();
     my $qrs = $db->doQuery( 1, 'SELECT 1 FROM mysql.user WHERE user = ? AND host = ?', $user, $host );
     ref $qrs eq 'HASH' or die( $qrs );
@@ -262,11 +261,7 @@ sub _init
 
     $self->{'eventManager'} = iMSCP::EventManager->getInstance();
     $self->{'cfgDir'} = "$main::imscpConfig{'CONF_DIR'}/mysql";
-    $self->{'config'} = $self->{'mysql'}->{'config'};
-    $self->{'config'} = lazy {
-            tie my %c, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/mysql.data", readonly => 1;
-            \%c;
-        };
+    tie %{$self->{'config'}}, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/mysql.data", readonly => 1;
     $self;
 }
 

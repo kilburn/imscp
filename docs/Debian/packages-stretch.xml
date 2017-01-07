@@ -122,7 +122,6 @@
         <package>libcrypt-eksblowfish-perl</package>
         <package>libcrypt-rijndael-perl</package>
         <package>libdata-validate-ip-perl</package>
-        <package>libdata-validate-domain-perl</package>
         <package>libdate-simple-perl</package>
         <package>libdatetime-perl</package>
         <package>libdbd-mysql-perl</package>
@@ -138,8 +137,10 @@
         <package>libnet-dns-perl</package>
         <package>libnet-libidn-perl</package>
         <package>libquota-perl</package>
+        <package>libsort-naturally-perl</package>
         <package>libtimedate-perl</package>
         <package>libunix-mknod-perl</package>
+        <package>libwww-perl</package>
         <package>libxml-parser-perl</package>
         <package>libxml-simple-perl</package>
     </perl>

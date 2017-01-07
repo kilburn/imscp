@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -33,7 +33,6 @@ use iMSCP::Rights;
 use iMSCP::TemplateParser;
 use iMSCP::Service;
 use File::Basename;
-use Scalar::Defer;
 use parent 'Common::SingletonClass';
 
 =head1 DESCRIPTION
@@ -330,12 +329,7 @@ sub _init
     $self->{'cfgDir'} = "$main::imscpConfig{'CONF_DIR'}/cron.d";
     $self->{'bkpDir'} = "$self->{'cfgDir'}/backup";
     $self->{'wrkDir'} = "$self->{'cfgDir'}/working";
-    $self->{'config'} = lazy {
-            tie my %c, 'iMSCP::Config',
-                fileName => "$self->{'cfgDir'}/cron.data",
-                readonly => (defined $main::execmode && $main::execmode eq 'setup') ? 0 : 1;
-            \%c;
-        };
+    tie %{$self->{'config'}}, 'iMSCP::Config', fileName => "$self->{'cfgDir'}/cron.data", readonly => 1;
     $self->{'eventManager'}->trigger( 'afterCronInit', $self, 'cron' ) and fatal( 'cron - afterCronInit has failed' );
     $self;
 }

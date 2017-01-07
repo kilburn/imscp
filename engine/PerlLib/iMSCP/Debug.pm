@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by internet Multi Server Control Panel
+# Copyright (C) 2010-2017 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -26,7 +26,7 @@ package iMSCP::Debug;
 use strict;
 use warnings;
 use iMSCP::Log;
-use open OUT => ':utf8';
+use open qw/ :std :utf8 /;
 use parent 'Exporter';
 
 our @EXPORT = qw/
@@ -55,14 +55,6 @@ my $self = {
 
 $self->{'target'} = $self->{'targets'}->[0];
 $self->{'default'} = $self->{'target'};
-
-# Dup STDOUT and STDERR
-open(my $debugSTDOUT, '>&STDOUT') or die(sprintf('Could not dup STDOUT: %s', $!));
-$debugSTDOUT->autoflush(1);
-
-# Dup STDERR
-open(my $debugSTDERR, '>&STDERR') or die(sprintf('Could not dup STDERR: %s', $!));
-$debugSTDERR->autoflush(1);
 
 =head1 DESCRIPTION
 
@@ -204,7 +196,7 @@ sub debug
 
     my $caller = (caller( 1 ))[3] || 'main';
     $self->{'target'}->store( message => "$caller: $message", tag => 'debug' ) if $self->{'debug'};
-    print {$debugSTDOUT} output( "$caller: $message", 'debug' ) if $self->{'verbose'};
+    print STDOUT output( "$caller: $message", 'debug' ) if $self->{'verbose'};
     undef;
 }
 
@@ -424,11 +416,8 @@ END {
         push @output, output( join( "\n", @messages ), $logLevel ) if @messages;
     }
 
-    print {$debugSTDERR} "@output" if @output;
+    print STDERR "@output" if @output;
 
-    close($debugSTDOUT);
-    close($debugSTDERR);
-    
     $? = $exitCode;
 }
 

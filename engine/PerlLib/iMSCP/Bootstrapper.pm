@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by internet Multi Server Control Panel
+# Copyright (C) 2010-2017 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -31,7 +31,6 @@ use iMSCP::EventManager;
 use iMSCP::Getopt;
 use IO::Handle;
 use locale;
-use open OUT => ':utf8';
 use POSIX qw / tzset locale_h /;
 use parent 'Common::SingletonClass';
 
@@ -118,7 +117,6 @@ sub loadMainConfig
         fileName  => ($^O =~ /bsd$/ ? '/usr/local/etc/' : '/etc/').'imscp/imscp.conf',
         nodie    => $options->{'nodie'} // 0,
         nocreate  => $options->{'nocreate'} // 1,
-        nofail    => $options->{'nofail'} // 0,
         readonly  => $options->{'config_readonly'} // 0,
         temporary => $options->{'config_temporary'} // 0;
 }
@@ -237,8 +235,6 @@ sub _genKeys
 
 sub _dbConnect
 {
-    my (undef, $options) = @_;
-
     require iMSCP::Database;
     require iMSCP::Crypt;
 
@@ -252,7 +248,7 @@ sub _dbConnect
         iMSCP::Crypt::decryptRijndaelCBC( $main::imscpDBKey, $main::imscpDBiv, $main::imscpConfig{'DATABASE_PASSWORD'} )
     );
     my $rs = $database->connect();
-    !$rs || $options->{'nofail'} or die( sprintf( 'Could not connect to the SQL server: %s', $rs ) );
+    !$rs or die( sprintf( 'Could not connect to the SQL server: %s', $rs ) );
     0;
 }
 

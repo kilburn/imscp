@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -90,27 +90,26 @@ sub showPhpConfigLevelDialog
 {
     my ($self, $dialog) = @_;
 
-    my $rs = 0;
     my $confLevel = main::setupGetQuestion( 'PHP_CONFIG_LEVEL', $self->{'phpConfig'}->{'PHP_CONFIG_LEVEL'} );
 
     if ($main::reconfigure =~ /^(?:httpd|php|servers|all|forced)$/ || $confLevel !~ /^per_(?:site|domain|user)$/) {
         $confLevel =~ s/_/ /;
-
-        ($rs, $confLevel) = $dialog->radiolist(
+        (my $rs, $confLevel) = $dialog->radiolist(
             <<"EOF", [ 'per_site', 'per_domain', 'per_user' ], $confLevel =~ /^per (?:user|domain)$/ ? $confLevel : 'per site' );
 
 \\Z4\\Zb\\ZuPHP configuration level\\Zn
 
-Please, choose the PHP configuration level you want use. Available levels are:
+Please choose the PHP configuration level you want use. Available levels are:
 
 \\Z4Per user:\\Zn One pool configuration file per user
 \\Z4Per domain:\\Zn One pool configuration file per domain (including subdomains)
 \\Z4Per site:\\Zn One pool configuration per domain
 EOF
+        return $rs if $rs >= 30;
     }
 
-    ($self->{'phpConfig'}->{'PHP_CONFIG_LEVEL'} = $confLevel) =~ s/ /_/ if $rs < 30;
-    $rs;
+    ($self->{'phpConfig'}->{'PHP_CONFIG_LEVEL'} = $confLevel) =~ s/ /_/;
+    0;
 }
 
 =item showListenModeDialog()
@@ -253,7 +252,7 @@ sub _init
     my $oldConf = "$self->{'apacheCfgDir'}/apache.old.data";
 
     if (defined $main::execmode && $main::execmode eq 'setup' && -f $oldConf) {
-        tie my %oldConfig, 'iMSCP::Config', fileName => $oldConf;
+        tie my %oldConfig, 'iMSCP::Config', fileName => $oldConf, readonly => 1;
         while(my ($key, $value) = each(%oldConfig)) {
             next unless exists $self->{'config'}->{$key};
             $self->{'config'}->{$key} = $value;
@@ -271,7 +270,7 @@ sub _init
     $oldConf = "$self->{'phpCfgDir'}/php.old.data";
 
     if(defined $main::execmode && $main::execmode eq 'setup' && -f $oldConf) {
-        tie my %oldConfig, 'iMSCP::Config', fileName => $oldConf;
+        tie my %oldConfig, 'iMSCP::Config', fileName => $oldConf, readonly => 1;
         while(my($key, $value) = each(%oldConfig)) {
             next unless exists $self->{'phpConfig'}->{$key};
             $self->{'phpConfig'}->{$key} = $value;
@@ -701,7 +700,9 @@ sub _setupVlogger
     );
 
     $self->{'httpd'}->buildConfFile(
-        "$self->{'apacheCfgDir'}/vlogger.conf.tpl", { }, { destination => "$self->{'apacheCfgDir'}/vlogger.conf" }
+        "$self->{'apacheCfgDir'}/vlogger.conf.tpl",
+        { SKIP_TEMPLATE_CLEANER => 1 },
+        { destination => "$self->{'apacheCfgDir'}/vlogger.conf" }
     );
 }
 

@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by Laurent Declercq <l.declercq@nuxwin.com>
+# Copyright (C) 2010-2017 by Laurent Declercq <l.declercq@nuxwin.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -119,9 +119,9 @@ sub _init
 
     my $oldConf = "$self->{'cfgDir'}/mysql.old.data";
 
-    if(defined $main::execmode && $main::execmode eq 'setup' && -f $oldConf) {
-        tie my %oldConfig, 'iMSCP::Config', fileName => $oldConf;
-        while(my($key, $value) = each(%oldConfig)) {
+    if (defined $main::execmode && $main::execmode eq 'setup' && -f $oldConf) {
+        tie my %oldConfig, 'iMSCP::Config', fileName => $oldConf, readonly => 1;
+        while(my ($key, $value) = each(%oldConfig)) {
             next unless exists $self->{'config'}->{$key};
             $self->{'config'}->{$key} = $value;
         }
@@ -157,9 +157,9 @@ sub _setTypeAndVersion
     }
 
     my $type = 'mysql';
-    if (index( lc( ${$rdata}[0]->[0] ), 'mariadb' ) != -1) {
+    if (index( lc( ${$rdata}[0]->[0] ), 'mariadb' ) != - 1) {
         $type = 'mariadb';
-    } elsif (index( lc( ${$rdata}[0]->[1] ), 'percona' ) != -1) {
+    } elsif (index( lc( ${$rdata}[0]->[1] ), 'percona' ) != - 1) {
         $type = 'percona';
     }
 
@@ -199,9 +199,9 @@ sub _buildConf
     # Make sure that the conf.d directory exists
     $rs = iMSCP::Dir->new( dirname => "$confDir/conf.d" )->make(
         {
-            user => $rootUName,
+            user  => $rootUName,
             group => $rootGName,
-            mode => 0755
+            mode  => 0755
         }
     );
     return $rs if $rs;
@@ -308,7 +308,7 @@ sub _updateServerConfig
         debug($stderr) if $stderr;
 
         # Upgrade server system tables
-        # See #IP-1482 for further details.
+        # See #IP-1482 for further details.
         unless ($rs) {
             my $host = main::setupGetQuestion( 'DATABASE_HOST' );
             (my $user = main::setupGetQuestion( 'SQL_ROOT_USER' )) =~ s/"/\\"/g;
@@ -349,7 +349,7 @@ EOF
         && version->parse( "$self->{'config'}->{'SQLD_VERSION'}" ) >= version->parse( '10.0' ))
         || (version->parse( "$self->{'config'}->{'SQLD_VERSION'}" ) >= version->parse( '5.6.6' ))
     ) {
-        for my $plugin(qw/cracklib_password_check simple_password_check validate_password/) {
+        for my $plugin(qw/ cracklib_password_check simple_password_check validate_password /) {
             $qrs = $db->doQuery( 'name', "SELECT name FROM mysql.plugin WHERE name = '$plugin'" );
             unless (ref $qrs eq 'HASH') {
                 error( $qrs );
@@ -366,9 +366,6 @@ EOF
         }
     }
 
-    # For usage of unix socket
-    #main::setupSetQuestion('DATABASE_HOST', 'localhost');
-    #$main::imscpConfig{'DATABASE_HOST'} = 'localhost';
     0;
 }
 

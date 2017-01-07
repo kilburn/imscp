@@ -5,7 +5,7 @@
 =cut
 
 # i-MSCP - internet Multi Server Control Panel
-# Copyright (C) 2010-2016 by internet Multi Server Control Panel
+# Copyright (C) 2010-2017 by internet Multi Server Control Panel
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -25,6 +25,7 @@ package Modules::Domain;
 
 use strict;
 use warnings;
+use Encode qw / decode_utf8 /;
 use File::Spec;
 use iMSCP::Database;
 use iMSCP::Debug;
@@ -438,7 +439,7 @@ sub _getData
             BASE_SERVER_PUBLIC_IP   => $main::imscpConfig{'BASE_SERVER_PUBLIC_IP'},
             DOMAIN_ADMIN_ID         => $self->{'domain_admin_id'},
             DOMAIN_NAME             => $self->{'domain_name'},
-            DOMAIN_NAME_UNICODE     => idn_to_unicode( $self->{'domain_name'}, 'utf-8' ),
+            DOMAIN_NAME_UNICODE     => decode_utf8( idn_to_unicode( $self->{'domain_name'}, 'utf-8' ) ),
             DOMAIN_IP               => $self->{'ip_number'},
             DOMAIN_TYPE             => 'dmn',
             PARENT_DOMAIN_NAME      => $self->{'domain_name'},
